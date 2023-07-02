@@ -214,11 +214,16 @@ resource "docker_container" "hiveserver" {
   }
   env = concat(local.default_env, [
     "SERVICE_PRECONDITION=hive-metastore:9083",
-    "DUMMY_DATA=1"
+#    "DUMMY_DATA=1"
   ])
   ports {
     internal = 10000
     external = 10000
+  }
+
+  ports {
+    internal = 10002
+    external = 10002
   }
   networks_advanced {
     name = docker_network.default.name
