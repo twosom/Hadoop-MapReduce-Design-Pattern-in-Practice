@@ -90,6 +90,10 @@ resource "docker_container" "namenode" {
     external = 9870
   }
   ports {
+    internal = 9000
+    external = 9000
+  }
+  ports {
     internal = 8020
     external = 8020
   }
@@ -111,6 +115,7 @@ resource "docker_container" "datanode" {
     container_path = "/somang"
   }
   env = concat(local.default_env, ["SERVICE_PRECONDITION=namenode:9870"])
+
   ports {
     internal = 9864
     external = 9864
@@ -214,7 +219,6 @@ resource "docker_container" "hiveserver" {
   }
   env = concat(local.default_env, [
     "SERVICE_PRECONDITION=hive-metastore:9083",
-#    "DUMMY_DATA=1"
   ])
   ports {
     internal = 10000
@@ -267,6 +271,9 @@ locals {
     "HIVE_SITE_CONF_javax_jdo_option_ConnectionDriverName=com.mysql.cj.jdbc.Driver",
     "HIVE_SITE_CONF_javax_jdo_option_ConnectionUserName=hive",
     "HIVE_SITE_CONF_javax_jdo_option_ConnectionPassword=hive",
+    "HIVE_SITE_CONF_hive_server2_thrift_bind_host=0.0.0.0",
+    "HIVE_SITE_CONF_hive_server2_thrift_port=10000",
+    "HIVE_SITE_CONF_hive_metastore_event_db_notification_api_auth=false",
     "HIVE_SITE_CONF_datanucleus_autoCreateSchema=false",
     "HIVE_SITE_CONF_hive_metastore_uris=thrift://hive-metastore:9083",
     "HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false",

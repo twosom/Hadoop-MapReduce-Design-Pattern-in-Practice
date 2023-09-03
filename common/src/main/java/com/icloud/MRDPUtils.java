@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class MRDPUtils {
     public static Map<String, String> transformXmlToMap(final String xml) {
-        HashMap<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
         try {
             String[] tokens = xml.trim().substring(5, xml.trim().length() - 3).split("\"");
 

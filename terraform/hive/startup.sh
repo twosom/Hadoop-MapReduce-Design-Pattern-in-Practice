@@ -44,5 +44,5 @@ else
   fi
 
   echo "execute the default, which is hiveserver2"
-  ./hiveserver2 --hiveconf hive.server2.enable.doAs=true
+  ./hiveserver2 --hiveconf hive.server2.enable.doAs=false
 fi
