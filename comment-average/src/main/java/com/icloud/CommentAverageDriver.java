@@ -24,7 +24,7 @@ public class CommentAverageDriver extends Configured implements Tool {
             System.exit(-1);
         }
 
-        Job job = Job.getInstance(getConf(), "Comment Min Max Count Application");
+        Job job = Job.getInstance(getConf(), "Comment Average Application");
         job.setJarByClass(getClass());
 
         job.setMapperClass(AverageMapper.class);
