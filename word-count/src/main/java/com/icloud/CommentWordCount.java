@@ -1,5 +1,7 @@
 package com.icloud;
 
+import com.icloud.model.Comment;
+import com.icloud.parser.CommentParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -22,56 +24,6 @@ import java.util.stream.StreamSupport;
 
 
 public class CommentWordCount extends Configured implements Tool {
-    /**
-     * Id IntegerType
-     * CreationDate TimestampType
-     * PostId IntegerType
-     * Score IntegerType
-     * Text StringType
-     * UserId IntegerType
-     */
-    private static class Comment {
-        private Integer Id;
-        private Integer PostId;
-        private Integer Score;
-        private String Text;
-
-        public Comment(Integer id, Integer postId, Integer score, String text) {
-            Id = id;
-            PostId = postId;
-            Score = score;
-            Text = text;
-        }
-
-        public Integer getId() {
-            return Id;
-        }
-
-        public Integer getPostId() {
-            return PostId;
-        }
-
-        public Integer getScore() {
-            return Score;
-        }
-
-        public String getText() {
-            return Text;
-        }
-
-    }
-
-    private static class CommentParser {
-
-        public Comment parse(final Group value) {
-            int Id = value.getInteger("Id", 0);
-            int PostId = value.getInteger("PostId", 0);
-            int Score = value.getInteger("Score", 0);
-            String Text = value.getString("Text", 0);
-
-            return new Comment(Id, PostId, Score, Text);
-        }
-    }
 
 
     public static class WordCountMapper extends Mapper<LongWritable, Group, Text, IntWritable> {
