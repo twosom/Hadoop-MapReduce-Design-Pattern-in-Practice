@@ -1,68 +1,123 @@
 package com.icloud;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.parquet.example.data.Group;
+import org.apache.parquet.hadoop.ParquetInputFormat;
+import org.apache.parquet.hadoop.example.GroupReadSupport;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.stream.StreamSupport;
 
+
 public class CommentWordCount extends Configured implements Tool {
+    /**
+     * Id IntegerType
+     * CreationDate TimestampType
+     * PostId IntegerType
+     * Score IntegerType
+     * Text StringType
+     * UserId IntegerType
+     */
+    private static class Comment {
+        private Integer Id;
+        private Integer PostId;
+        private Integer Score;
+        private String Text;
 
-    public static class WordCountMapper
-            extends Mapper<Object, Text, Text, IntWritable> {
+        public Comment(Integer id, Integer postId, Integer score, String text) {
+            Id = id;
+            PostId = postId;
+            Score = score;
+            Text = text;
+        }
 
-        private final static IntWritable one = new IntWritable(1);
+        public Integer getId() {
+            return Id;
+        }
+
+        public Integer getPostId() {
+            return PostId;
+        }
+
+        public Integer getScore() {
+            return Score;
+        }
+
+        public String getText() {
+            return Text;
+        }
+
+    }
+
+    private static class CommentParser {
+
+        public Comment parse(final Group value) {
+            int Id = value.getInteger("Id", 0);
+            int PostId = value.getInteger("PostId", 0);
+            int Score = value.getInteger("Score", 0);
+            String Text = value.getString("Text", 0);
+
+            return new Comment(Id, PostId, Score, Text);
+        }
+    }
+
+
+    public static class WordCountMapper extends Mapper<LongWritable, Group, Text, IntWritable> {
+
+        private final CommentParser parser = new CommentParser();
+
+        private static final IntWritable one = new IntWritable(1);
         private Text word = new Text();
 
         @Override
-        protected void map(Object key,
-                           Text value,
-                           Context context)
+        protected void map(LongWritable key, Group value, Context context)
                 throws IOException, InterruptedException {
-            Map<String, String> parsed = MRDPUtils.transformXmlToMap(value.toString());
-            String txt = parsed.get("Text");
-            if (txt == null) return;
-            txt = StringEscapeUtils.unescapeHtml4(txt.toLowerCase());
+            Comment comment = parser.parse(value);
+            String text = comment.getText();
+            if (text == null) {
+                return;
+            }
 
-            txt = txt.replaceAll("'", "")
-                    .replaceAll("[^a-zA-Z]", " ");
+            text = text.toLowerCase(Locale.ROOT);
 
-            StringTokenizer itr = new StringTokenizer(txt);
-            while (itr.hasMoreTokens()) {
-                word.set(itr.nextToken());
+            text = text.replaceAll("'", ""); // 홑따옴표 제거
+            text = text.replaceAll("[^a-zA-Z]", " "); // 나머지는 공백 처리
+
+            StringTokenizer iter = new StringTokenizer(text);
+            while (iter.hasMoreTokens()) {
+                word.set(iter.nextToken());
                 context.write(word, one);
             }
         }
     }
 
-    public static class IntSumReducer
-            extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class WordCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
         private IntWritable result = new IntWritable();
 
         @Override
-        protected void reduce(Text key,
-                              Iterable<IntWritable> values,
-                              Context context)
+        protected void reduce(Text key, Iterable<IntWritable> values, Context context)
                 throws IOException, InterruptedException {
             int sum = StreamSupport.stream(values.spliterator(), false)
                     .mapToInt(IntWritable::get)
                     .sum();
+
             result.set(sum);
             context.write(key, result);
         }
     }
+
 
     @Override
     public int run(String[] args) throws Exception {
@@ -72,16 +127,26 @@ public class CommentWordCount extends Configured implements Tool {
             System.exit(-1);
         }
 
-        Job job = Job.getInstance(getConf(), "StackOverflow Comment Word Count");
+
+        Job job = Job.getInstance(getConf(), "Comment Word Count Application");
         job.setJarByClass(getClass());
+
         job.setMapperClass(WordCountMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
+        job.setCombinerClass(WordCountReducer.class);
+        job.setReducerClass(WordCountReducer.class);
+
+        // 출력 설정
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
+
+        // Parquet 파일 인풋 설정
+        ParquetInputFormat.setInputPaths(job, new Path(args[0]));
+        ParquetInputFormat.setReadSupportClass(job, GroupReadSupport.class);
+        job.setInputFormatClass(ParquetInputFormat.class);
+
+        // File 아웃풋 설정
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        return job.waitForCompletion(true) ? 0 : -1;
+        return job.waitForCompletion(true) ? 0 : 1;
     }
 
     public static void main(String[] args) throws Exception {

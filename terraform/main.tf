@@ -264,6 +264,55 @@ resource "docker_container" "zookeeper" {
   }
 }
 
+
+# Docker 이미지: Spark
+resource "docker_image" "spark" {
+  name = "bitnami/spark:latest"
+}
+
+
+# Docker 컨테이너: Spark 마스터
+resource "docker_container" "spark-master" {
+  hostname = "spark-master"
+  name     = "spark-master"
+  image    = docker_image.spark.name
+  networks_advanced {
+    name = docker_network.default.name
+  }
+  env = [
+    "SPARK_MODE=master",
+    "HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop"
+  ]
+
+  ports {
+    internal = 7077
+    external = 7077
+  }
+  ports {
+
+    internal = 8080
+    external = 8080
+  }
+}
+
+# Docker 컨테이너: Spark 워커
+resource "docker_container" "spark_worker" {
+  count = 3
+  name  = "spark_worker_${count.index+1}"
+  image = docker_image.spark.name
+  networks_advanced {
+    name = docker_network.default.name
+  }
+  env = [
+    "SPARK_MODE=worker",
+    "SPARK_MASTER_URL=spark://spark-master:7077",
+    "HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop"
+  ]
+}
+
+
+
+
 locals {
   hadoop_version = "3.3.5"
   default_env    = [

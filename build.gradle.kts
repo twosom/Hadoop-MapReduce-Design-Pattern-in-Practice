@@ -40,6 +40,7 @@ subprojects {
         implementation("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion")
         implementation("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoopVersion")
         implementation("net.bytebuddy:byte-buddy:1.10.22")
+        implementation("org.apache.parquet:parquet-hadoop:1.13.1")
         testImplementation("org.objenesis:objenesis:3.2")
         if (project.name != "common") {
             implementation(project(":common"))
@@ -58,10 +59,12 @@ subprojects {
             val buildEndTime = System.currentTimeMillis()
             val buildDuration = buildEndTime - buildStartTime
 
-            println("""
+            println(
+                """
                 ${green}${this.project.name} build completed
                 Build Time : $buildDuration ms
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
     tasks.test {
