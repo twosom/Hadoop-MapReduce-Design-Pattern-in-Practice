@@ -1,7 +1,7 @@
 package com.icloud.mapper;
 
 import com.icloud.model.Comment;
-import com.icloud.parser.CommentParser;
+import com.icloud.parser.impl.CommentParser;
 import com.icloud.writable.CountAverageTuple;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;

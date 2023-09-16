@@ -24,47 +24,23 @@ public class Comment {
         return Id;
     }
 
-    public void setId(Integer id) {
-        Id = id;
-    }
-
     public LocalDateTime getCreationDate() {
         return CreationDate;
-    }
-
-    public void setCreationDate(LocalDateTime creationDate) {
-        CreationDate = creationDate;
     }
 
     public Integer getPostId() {
         return PostId;
     }
 
-    public void setPostId(Integer postId) {
-        PostId = postId;
-    }
-
     public Integer getScore() {
         return Score;
-    }
-
-    public void setScore(Integer score) {
-        Score = score;
     }
 
     public String getText() {
         return Text;
     }
 
-    public void setText(String text) {
-        Text = text;
-    }
-
     public Integer getUserId() {
         return UserId;
-    }
-
-    public void setUserId(Integer userId) {
-        UserId = userId;
     }
 }

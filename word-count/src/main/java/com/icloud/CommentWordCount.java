@@ -1,7 +1,7 @@
 package com.icloud;
 
 import com.icloud.model.Comment;
-import com.icloud.parser.CommentParser;
+import com.icloud.parser.impl.CommentParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
